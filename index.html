@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>So'zlar O'yini</title>
+</head>
+<body>
+    <h1>So'zlar O'yini</h1>
+    <button id="startBtn">Gapirishni boshlash</button>
+    <p id="botWord">Botning so'zi: -</p>
+    <p id="playerWord">Sizning so'zingiz: -</p>
+    <p id="result"></p>
+
+    <script>
+        let words = {
+            'a': ['author', 'alogance', 'argument'],
+            'b': ['bowl', 'banana', 'button'],
+            'c': ['cover', 'culture', 'catapult'],
+            'd': ['dawn', 'dust', 'date'],
+            'e': ['eagle', 'eight', 'edge'],
+            'f': ['fork', 'faith', 'fountain'],
+            'g': ['group', 'gate', 'gold'],
+            'h': ['horizon', 'halloween', 'hunt'],
+            'i': ['issue', 'image', 'item'],
+            'j': ['jaw', 'job', 'jam'],
+            'k': ['key', 'kid', 'knife'],
+            'l': ['lamp', 'ladder', 'leaf'],
+            'm': ['map', 'man', 'mark'],
+            'n': ['nut', 'nap', 'null'],
+            'o': ['output', 'oak', 'oil'],
+            'p': ['pool', 'pork', 'pear'],
+            'q': ['question', 'queen', 'quote'],
+            'r': ['roof', 'rain', 'rail'],
+            's': ['snake', 'sword', 'saint'],
+            't': ['torch', 'trumpet', 'tape'],
+            'u': ['umbrella', 'unicorn', 'uniform'],
+            'v': ['velocity', 'vacation', 'value'],
+            'w': ['war', 'wall', 'violin'],
+            'x': ['xylophone', 'xerox', 'xerus'],
+            'y': ['yo-yo', 'yak', 'yarn'],
+            'z': ['zero', 'zebra', 'zip']
+        };
+
+        let usedWords = []; // Takrorlanmasligi uchun ishlatilgan so'zlar ro'yxati
+        let recognition = new window.webkitSpeechRecognition();
+        recognition.lang = "en-US";
+        recognition.continuous = false;
+        recognition.interimResults = false;
+
+        const startBtn = document.getElementById("startBtn");
+        const botWordElement = document.getElementById("botWord");
+        const playerWordElement = document.getElementById("playerWord");
+        const resultElement = document.getElementById("result");
+
+        // O'yinni boshlash uchun bot bir so'z tanlaydi
+        let botWord = getRandomBotWord();
+        botWordElement.textContent = `Botning so'zi: ${botWord}`;
+        usedWords.push(botWord);
+
+        // Foydalanuvchi mikrofonga gapiradi
+        startBtn.onclick = function () {
+            recognition.start();
+        };
+
+        recognition.onresult = function (event) {
+            let transcript = event.results[0][0].transcript.toLowerCase().trim();
+            let lastChar = transcript.slice(-1); // Foydalanuvchi so'zining oxirgi harfi
+
+            if (usedWords.includes(transcript)) {
+                resultElement.textContent = "Siz bir xil so'zni takrorladingiz! Siz yutqizdingiz!";
+                return;
+            }
+
+            playerWordElement.textContent = `Sizning so'zingiz: ${transcript}`;
+            usedWords.push(transcript); // Foydalanuvchi so'zini saqlab qo'yamiz
+
+            // Kompyuter javobi
+            let newBotWord = getBotWordByLastChar(lastChar);
+            if (newBotWord) {
+                botWordElement.textContent = `Botning so'zi: ${newBotWord}`;
+                usedWords.push(newBotWord); // Bot so'zini ham saqlab qo'yamiz
+            } else {
+                resultElement.textContent = "Bot yangi so'z topolmadi! Siz yutdingiz!";
+            }
+        };
+
+        recognition.onerror = function (event) {
+            resultElement.textContent = `Xato yuz berdi: ${event.error}`;
+        };
+
+        // Tasodifiy so'z tanlash funksiyasi
+        function getRandomBotWord() {
+            let keys = Object.keys(words);
+            let randomKey = keys[Math.floor(Math.random() * keys.length)];
+            let wordList = words[randomKey];
+            return wordList[Math.floor(Math.random() * wordList.length)];
+        }
+
+        // Oxirgi harfga mos bot so'zini tanlash
+        function getBotWordByLastChar(lastChar) {
+            let possibleWords = words[lastChar]; // So'nggi harf bo'yicha so'zlar
+            if (!possibleWords) return null; // Agar mos so'zlar bo'lmasa
+
+            // Filtrlanmagan so'zlar ro'yxatidan foydalanilmagan so'zni tanlaymiz
+            let availableWords = possibleWords.filter(word => !usedWords.includes(word));
+            if (availableWords.length === 0) return null;
+
+            return availableWords[Math.floor(Math.random() * availableWords.length)]; // Random tanlaymiz
+        }
+    </script>
+</body>
+</html>
